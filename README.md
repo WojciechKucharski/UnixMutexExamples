@@ -2,11 +2,11 @@
 Simulation of bidding in Unix System, where processes are bidders.
 ## Introduction
 There is certain number of bidders and items, every bidder bids random item for every bidding round.
-* N_AGENTS -- number of bidders,
-* N_ITEMS -- number of items to bid,
-* OPENING_BID -- starting price of an item,
-* NOMINAL_RAISE -- raise per bid,
-* BIDDING_ROUNDS -- number of bidding rounds.
+* N_AGENTS - number of bidders,
+* N_ITEMS - number of items to bid,
+* OPENING_BID - starting price of an item,
+* NOMINAL_RAISE - raise per bid,
+* BIDDING_ROUNDS - number of bidding rounds.
 ## Example 1
 Bidding rounds are implemented by simple loop.
 ## Example 2
