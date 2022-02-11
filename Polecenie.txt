@@ -1,0 +1,61 @@
+Opis zadania
+Celem zadania jest przeprowadzenie eksperymentów z programem współbieżnym. Pretekstem będzie budowa programu do przeprowadzania licytacji. Pojawia się pewna liczba uczestników licytacji, którzy składają oferty na wybrane przedmioty.
+
+Parametry licytacji:
+N_AGENTS=20 /* liczba uczestników */
+N_ITEMS=20 /* liczba przedmiotów */
+OPENING_BID=100 /* początkowa cena każdego przedmiotu */
+NOMINAL_RAISE=1 /* wartość podbicia */
+BIDDING_ROUNDS=10000 /* liczba podbić wykonana przez każdego uczestnika */
+UWAGA: w tym zadaniu powstanie sześć kolejnych wersji programu. Wszystkie wersje programu z poszczególnych punktów należy zachować dla porównania, jak również w celu zachowania możliwości późniejszego poprawienia wcześniejszej wersji. Wersje z punktów 3, 4, 5, i 6 trzeba będzie również oddzielnie wysłać na zaliczenie zadania.
+
+1. (1 punkt - do wykonania na zajęciach)
+
+Proszę napisać program, który najpierw zainicjalizuje ceny wszystkich przedmiotów w tablicy ofert typu long int, a następnie wygeneruje losowo zadaną liczbę podbić licytacji. W każdym kroku program wybierze losowo jeden z przedmiotów licytacji, po czym zwiększy ofertę na ten przedmiot o wartość podbicia.
+
+Do generacji liczb pseudolosowych można użyć podstawowej funkcji rand. Aby uzyskać przypadkową sekwencję pseudolosową generator musi być zainicjalizowany funkcją srand. Tej funkcji należy dostarczyć jako argument przypadkową wartość. Można do tego celu użyć bieżącego czasu w sekundach (funkcja time), numeru bieżącego procesu (funkcja getpid), albo jakiejś jeszcze innej metody uzyskania przypadkowej wartości całkowitoliczbowej.
+
+Generator liczb pseudolosowych implementowany przez funkcje rand/srand ma słabe własności stochastyczne, i jeśli ktoś chciałby sprawdzić lepsze metody, może zamiast nich użyć funkcji drand48. Do jej zainicjalizowania można użyć jednej z funkcji: srand48, seed48, lub lcong48.
+
+Po zakończeniu licytacji należy wyświetlić wyniki w postaci wartości ofert końcowych na wszystkie przedmioty, oraz ich sumy (która powinna być równa sumie cen początkowych plus liczba podbić razy wartość podbicia).
+
+2. (1 punkt - do wykonania na zajęciach)
+
+W drugim kroku należy utworzyć w programie obszar pamięci wspólnej o odpowiednim rozmiarze, i umieścić w niej tablicę ofert.
+
+Obszar pamięci wspólnej można stworzyć zgodnie ze standardem System V IPC funkcją shmget, co następnie wymaga włączenia jej do przestrzeni adresowej procesu funkcją shmat.
+
+Alternatywnie, można użyć interfejsu pamięci wspólnej POSIX Realtime. W tym standardzie obszar pamięci wspólnej tworzony jest funkcją shm_open i istnieje on jako plik specjalny. Ten plik należy zmapować do przestrzeni pamięci procesu funkcją mmap.
+
+Przykłady konfiguracji i użycia pamięci wspólnej w obu tych modelach były przedstawione na wykładzie.
+
+Wynikiem powinien być program działający identycznie jak w poprzednim kroku, tylko wykorzystujący obszar pamięci wspólnej, zamiast zwykłej tablicy.
+
+3. (2 punkty - wykonane na zajęciach)
+
+Następnie należy zamienić program na wieloprocesowy. Zadaniem programu głównego będzie tylko utworzenie właściwej liczby podprocesów reprezentujących uczestników licytacji. Zadaniem każdego z nich będzie wygenerowanie zadanej liczby podbić losowo wybranych przedmiotów. Wyniki zapisywane są w obszarze pamięci wspólnej.
+
+Program główny po wygenerowaniu wszystkich podprocesów powinien czekać na ich zakończenie wywołując jedną z wersji funkcji wait, i po zakończeniu wszystkich podprocesów wyświetlić sumaryczne wyniki licytacji.
+
+Po starannym zdebugowaniu programu przeprowadź z nim szereg eksperymentów, obserwując otrzymane wyniki (sumę końcowych wartości ofert). Należy się spodziewać, że przy równoczesnej pracy wielu procesów wystąpi wiele razy zjawisko wyścigów, i suma ofert wygenerowanych przez procesy nie będzie równa końcowej sumie ofert. Proszę odnotować wynik tego porównania w raporcie.
+
+UWAGA: jeśli wyścigi nie występują i suma ofert się zgadza to może oznaczać, że program został źle napisany, albo z jakiegoś powodu procesy nie osiągają współbieżności. Na próbę można zwiększyć (10x, 100x, 1000x, ...) liczbę ofert składanych przez poszczególnych oferentów i/lub chwilowo zmniejszyć liczbę przedmiotów (o połowę?). Można też uruchomić program na innym systemie.
+
+4. (1 punkt - w domu)
+
+Ponieważ w kolejnych punktach zadania istotny stanie się czas wykonywania programu, proszę dodać pomiar czasu: zarówno czasu rzeczywistego jak i czasu wirtualnego (CPU). Czas wirtualny dla obliczeń szeregowych powinien normalnie być mniejszy od czasu rzeczywistego, ale dla programu wykonującego obliczenia rzeczywiście równoległe (na wielu procesorach lub rdzeniach) czas wirtualny może być większy od rzeczywistego.
+W raporcie proszę podać uzyskane czasy pracy dla programu z punktu 3, oraz punktów 5 i 6.
+
+Pomiar czasu rzeczywistego można zrealizować funkcją clock_gettime natomiast pomiar czasu CPU funkcją times. W ostatnim przypadku warto podać zarówno wartości utime, stime, jak i ich sumę. We wszystkich przypadkach proszę zadbać o poprawne przeliczenie jednostek wyświetlanych wartości czasowych na sekundy.
+
+UWAGA: w przypadku problemów z wykonaniem zadania ten punkt można pominąć, ponieważ nie jest kluczowy dla osiągnięcia zasadniczego celu zadania. Zastępczo czas wykonania programu można zmierzyć zewnętrznym programem time (tylko w celu porównania, brak punktów za takie rozwiązanie).
+
+5. (2 punkty - wykonane na zajęciach)
+
+Aby rozwiązać problem wyścigów występujących przy równoczesnym dostępie do pamięci i wynikających z nich błędów w obliczaniu wartości ofert wprowadź do programu globalny muteks chroniący cały globalny obszar danych (funkcje pthread_mutex_lock i pthread_mutex_unlock). Muteks powinien zapewnić brak wyścigów i poprawność liczenia wyników. Utworzenie muteksu: trzeba najpierw utworzyć i zainicjalizować obiekt atrybutowy muteksu pthread_mutexattr_t funkcją pthread_mutexattr_init, oraz ustawić w nim flagę wieloprocesowości PTHREAD_PROCESS_SHARED funkcją pthread_mutexattr_setpshared. Muteks należy utworzyć w obszarze pamięci wspólnej, i zainicjalizować go funkcją pthread_mutex_init wykorzystując utworzony obiekt atrybutowy. Po wprowadzeniu ochrony sekcji krytycznej programu (inkrementacji globalnych wartości ofert) muteksem proszę przeprowadzić serię eksperymentów, żeby upewnić się, że obliczanie ofert działa poprawnie.
+
+W raporcie proszę odnotować, czy zarejestrowana suma ofert była tym razem poprawna, czyli zgodna z liczbą ofert złożonych. Proszę również podać czasy wykonywania tej wersji programu. W przypadku, gdyby czas wzrósł dramatycznie, można roboczno zmniejszyć liczbę ofert (podbić) składanych przez uczestnika (np. 10 razy lub nawet 100 razy). Jednak dla celów pomiaru i porównania czasu działania programu do raportu końcowego proszę zastosować oryginalną liczbę podbić.
+
+6. (1 punkt - w domu)
+
+Usprawnieniem przyspieszającym poprawne liczenie ofert będzie utworzenie oddzielnych muteksów dla poszczególnych przedmiotów. Dzięki temu każdy muteks chroni tylko wartość oferty jednego przedmiotu, i podbicia na różne przedmioty mogą być składane równolegle. Należy stworzyć kolejną wersję programu, i ponownie przeprowadzić z nią eksperymenty: najpierw potwierdzenie poprawności obliczania ofert, oraz pomiary czasów. Głównie interesuje nas skrócenie czasu rzeczywistego, ale w raporcie proszę porównać również czasy CPU.
